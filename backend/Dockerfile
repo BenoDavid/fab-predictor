@@ -44,8 +44,9 @@ ENV MSSQL_SERVER=123456 \
     MSSQL_USERNAME=fab \
     MSSQL_PASSWORD=""
 
-# Run script
-COPY run.sh /app/run.sh
-RUN chmod +x /app/run.sh
 
-CMD ["/app/run.sh"]
+# Expose FastAPI port
+EXPOSE 8000
+
+# Run FastAPI with Uvicorn
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

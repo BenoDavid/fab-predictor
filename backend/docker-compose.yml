@@ -1,0 +1,55 @@
+services:
+  backend:
+    container_name: fabric-backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./app:/app/app
+    ports:
+      - "8000:8000"
+    environment:
+      MSSQL_SERVER: "192.168.10.219,1433"
+      MSSQL_DATABASE: "styxdev"
+      MSSQL_USERNAME: "SA"
+      MSSQL_PASSWORD: "YourStrong@Passw0rd"
+    restart: always
+    networks:
+      - fabric-net
+
+  fab-nodejs:
+    container_name: fabric-nodejs
+    build:
+      context: ./fab-nodejs
+      dockerfile: Dockerfile
+    volumes:
+      - ./fab-nodejs:/app
+    ports:
+      - "4202:4202"
+    environment:
+      NODE_ENV: development
+    depends_on:
+      - backend
+    networks:
+      - fabric-net
+
+  frontend:
+    container_name: fabric-frontend
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    volumes:
+      - ../frontend:/src/app
+    ports:
+      - "4201:4201"
+    environment:
+      NODE_ENV: development
+    depends_on:
+      - backend
+      - fab-nodejs
+    networks:
+      - fabric-net
+
+networks:
+  fabric-net:
+    driver: bridge

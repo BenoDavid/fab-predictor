@@ -1,22 +1,18 @@
-version: "3.9"
-
 services:
   backend:
     container_name: fabric-backend
+    volumes:
+      - ./app:/app/app
     build:
+      context: .
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
     environment:
-      # ===== MSSQL CREDENTIALS =====
       MSSQL_SERVER: "192.168.10.219,1433"
       MSSQL_DATABASE: "styxdev"
       MSSQL_USERNAME: "SA"
       MSSQL_PASSWORD: "YourStrong@Passw0rd"
-
-      # Optional: Python / API configs
-      PYTHONUNBUFFERED: "1"
-      UVICORN_PORT: "8000"
     restart: always
     networks:
       - fabric-net

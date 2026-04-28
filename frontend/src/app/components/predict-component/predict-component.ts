@@ -70,7 +70,7 @@ export class PredictComponent {
     this.pageLoader.set(true);
     this.historicalData.set([]); // Clear previous results
     this.predictionService
-      .getFabrics('?style=' + this.formData.style + `&indentStatus=Open&season=SS25`)
+      .getFabrics('?style=' + this.formData.style + `&indentStatus=Open&season=SS26`)
       .subscribe({
         next: (res: any) => {
           console.log('Fabric search result:', res);
@@ -97,9 +97,9 @@ export class PredictComponent {
     console.log('Submitting form with data:', fabric);
     this.selectedFabric.set(fabric); // Store selected fabric for potential future use
     let requestBody = {
-      style: fabric?.style || '',
+      style: fabric?.style+ '' || '',
       po: fabric?.po || '',
-      color: fabric?.color || '',
+      color: fabric?.color+ '' || '',
       fabric_type: fabric?.productCategory || '',
       qty: Math.round(fabric?.indentQty) || 0,
       buyer: fabric?.brand || '',

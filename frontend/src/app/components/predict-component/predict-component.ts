@@ -21,6 +21,8 @@ export class PredictComponent {
   error = signal<string>('');
   pageLoader = signal<boolean>(false);
   historicalData = signal<any[]>([]);
+  orderedFabrics = signal<any[]>([]);
+
   isBookConsumption = signal<boolean>(false);
   // FORM DATA (still simple object)`
   // formData: any = {
@@ -97,9 +99,9 @@ export class PredictComponent {
     console.log('Submitting form with data:', fabric);
     this.selectedFabric.set(fabric); // Store selected fabric for potential future use
     let requestBody = {
-      style: fabric?.style+ '' || '',
+      style: fabric?.style + '' || '',
       po: fabric?.po || '',
-      color: fabric?.color+ '' || '',
+      color: fabric?.color + '' || '',
       fabric_type: fabric?.productCategory || '',
       qty: Math.round(fabric?.indentQty) || 0,
       buyer: fabric?.brand || '',
@@ -147,6 +149,26 @@ export class PredictComponent {
         this.error.set('Prediction failed. Check backend or parameters.');
         this.pageLoader.set(false);
       },
+    });
+  }
+  placeOrder() {
+    const fabric = this.selectedFabric();
+    if (!fabric) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: 'No fabric selected for ordering. Please select a fabric first.',
+      });
+      return;
+    }
+    this.orderedFabrics.update((fabrics) => [...fabrics, fabric]);
+    //add api
+
+    //till here
+    Swal.fire({
+      icon: 'success',
+      title: 'Order Placed',
+      text: `Your order has been placed successfully!`,
     });
   }
 }

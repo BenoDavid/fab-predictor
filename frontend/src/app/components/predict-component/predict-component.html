@@ -267,7 +267,8 @@
         <button
           type="button"
           class="btn btn-success"
-          (click)="isBookConsumption = isBookConsumption"
+          (click)="placeOrder()"
+          data-bs-dismiss="modal"
         >
           Place Order
         </button>
@@ -275,6 +276,38 @@
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
+  </div>
+</div>
+<div class="table-responsive m-4" *ngIf="orderedFabrics().length != 0">
+  <h4 class="fw-bold mb-4 slide-up">Ordered Fabrics</h4>
+  <h6>List of ordered fabrics</h6>
+
+  <div class="mt-4" style="overflow-y: auto; border: 1px solid #dee2e6; border-radius: 0.25rem">
+    <table class="table table-sm table-md mb-0 mt-3">
+      <thead class="sticky-top bg-white">
+        <tr>
+          <th>ARTICLE</th>
+          <th>COLOR</th>
+          <th>FABRIC CONSUMPTION (YDS/UNIT)</th>
+          <th>ORDER QUANTITY (UNITS)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let fabric of orderedFabrics(); let i = index">
+          <td>{{ fabric.articleCode }}</td>
+          <td>{{ fabric.color }}</td>
+          <td>
+            {{ fabric.mark_cons ? fabric.mark_cons : 'N/A' }}
+          </td>
+          <td>
+            {{ fabric.order_qty ? fabric.order_qty : 'N/A' }}
+          </td>
+        </tr>
+        <tr *ngIf="orderedFabrics().length == 0">
+          <td colspan="14" class="text-center text-muted">No ordered fabrics found.</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </div>
 <h6 class="text-center">Crafted with ❤️ By cfdt</h6>

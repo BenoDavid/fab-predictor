@@ -100,20 +100,7 @@ export class PredictComponent {
     this.selectedFabric.set(fabric); // Store selected fabric for potential future use
     let requestBody = {
       style: fabric?.style + '' || '',
-      po: fabric?.po || '',
-      color: fabric?.color + '' || '',
-      fabric_type: fabric?.productCategory || '',
       qty: Math.round(fabric?.indentQty) || 0,
-      buyer: fabric?.brand || '',
-      season: fabric?.season || '',
-      supplier: '',
-      factory: '',
-      gsm: 0,
-      width_mm: 0,
-      shrinkage_warp_pct: 0,
-      shrinkage_weft_pct: 0,
-      marker_efficiency_pct: 0,
-      wash_type: '',
     };
 
     console.log('Final request body for prediction:', requestBody);

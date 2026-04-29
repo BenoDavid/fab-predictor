@@ -135,6 +135,7 @@ def _similar_pos_for_response(df: pd.DataFrame, n: int = 5) -> List[Dict]:
     return out
 
 @router.post("/predict", response_model=PredictionResponse)
+
 def predict(req: PredictionRequest, db: Session = Depends(get_db)):
     """
     Predict per-piece fabric consumption (meters per unit) using LightGBM quantile models
@@ -143,46 +144,27 @@ def predict(req: PredictionRequest, db: Session = Depends(get_db)):
     if req.qty <= 0:
         raise HTTPException(status_code=400, detail="qty must be > 0")
 
-    # 1) Pull similar history (and if empty, fallback to wider history)
-    hist_df = _similar_history(db, req, limit=1000)
-    hist_count = int(len(hist_df))
-    if hist_df.empty:
-        global_df = _df_from_query(db, """
-            SELECT
-                style, po, color, fabric_type, buyer, season, supplier, factory,
-                po_date, order_qty, unit, actual_consumption_total,
-                gsm, width_mm, shrinkage_warp_pct, shrinkage_weft_pct, marker_efficiency_pct, wash_type,
-                color_family
-            FROM fact_fabric_consumption
-            ORDER BY po_date DESC
-            OFFSET 0 ROWS FETCH NEXT 5000 ROWS ONLY;
-        """, {})
-        working_df = _compute_per_piece(global_df)
-    else:
-        working_df = hist_df
+    # Only use style for history
+    hist_df = _df_from_query(db, """
+        SELECT style, po, order_qty, unit, actual_consumption_total
+        FROM fact_fabric_consumption
+        WHERE style = :style
+        ORDER BY po_date DESC
+        OFFSET 0 ROWS FETCH NEXT 1000 ROWS ONLY;
+    """, {"style": req.style})
+    working_df = _compute_per_piece(hist_df)
+    hist_count = int(len(working_df))
 
-    # 2) Aggregates for model input & fallback
     agg_median = float(working_df["actual_per_piece"].median()) if not working_df.empty else np.nan
-
-    supplier_bias = np.nan
-    if not working_df.empty and req.supplier:
-        subset = working_df[working_df["supplier"] == req.supplier]
-        if not subset.empty:
-            supplier_bias = float(subset["actual_per_piece"].median())
-    if np.isnan(supplier_bias) and not working_df.empty:
-        supplier_bias = float(working_df["actual_per_piece"].median())
-
     aggregates = {
         "hist_median_per_piece": agg_median if not np.isnan(agg_median) else None,
         "hist_count": hist_count if hist_count > 0 else int(len(working_df)),
-        "supplier_bias": supplier_bias if not np.isnan(supplier_bias) else None,
+        "supplier_bias": None,
     }
 
-    # 3) Build model features
     req_dict = req.model_dump()
     xrow = build_feature_row(req_dict, aggregates)
 
-    # 4) Predict per-piece
     if MODEL.ready():
         try:
             p50, p75, p90 = predict_quantiles(xrow)
@@ -199,23 +181,15 @@ def predict(req: PredictionRequest, db: Session = Depends(get_db)):
         p90 = p50
         model_version = "fallback_hist_median"
 
-    # 5) Multiply by qty for totals
     qty = req.qty
     def total(v: float | None) -> float | None:
         return float(v * qty) if v is not None else None
 
-    # 6) Reason codes (SHAP if model, else heuristic)
-    reason_codes = [ReasonCode(**r) for r in _choose_reason_codes(xrow, working_df)]
-
-    # 7) Similar past POs (for UI explanation)
-    similar_past_pos = [SimilarPO(**s) for s in _similar_pos_for_response(working_df, n=5)]
-
-    # 8) Build response
     return PredictionResponse(
-        po=req.po,
+        po=None,
         style=req.style,
-        color=req.color,
-        fabric_type=req.fabric_type,
+        color=None,
+        fabric_type=None,
         unit="meters",
         prediction={
             "per_piece": {
@@ -229,8 +203,8 @@ def predict(req: PredictionRequest, db: Session = Depends(get_db)):
                 "p90": total(p90)
             }
         },
-        reason_codes=reason_codes,
-        similar_past_pos=similar_past_pos,
+        reason_codes=[],
+        similar_past_pos=[],
         data_timestamp=datetime.utcnow().isoformat() + "Z",
         model_version=model_version,
         notes="P75 recommended; uses model if available, else historical median."

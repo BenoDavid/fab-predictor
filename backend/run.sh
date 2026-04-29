@@ -4,7 +4,7 @@ echo "============================"
 echo "📌 Starting model training..."
 echo "============================"
 
-# python app/ml/train.py
+python app/ml/train.py
 
 echo "============================"
 echo "✅ Model training complete."

@@ -79,40 +79,22 @@ def style_group(x):
 
 df["style_group"] = df["style"].apply(style_group)
 
-# Final feature list
-feature_cols = [
-    "style",
-    "color",
-    "fabric_type",
-    "buyer",
-    "season",
-    "order_qty",
-    "unit",
-    "articleNo",
-    "brand",
-    "productCategory",
-    "productSubCategory",
-    "booking_cons",
-    "qty"
-]
 
+
+
+# Final feature list: style, qty, booking_cons
+feature_cols = ["style", "qty", "booking_cons"]
+cat_cols = ["style"]
+
+# Ensure qty and booking_cons are present and numeric
+for col in ["qty", "booking_cons"]:
+    if col not in df.columns:
+        print(f"❌ ERROR: '{col}' column missing in data.")
+        sys.exit(1)
+    df[col] = pd.to_numeric(df[col], errors="coerce")
+df = df.dropna(subset=["qty", "booking_cons"])
 
 print("🧹 After cleaning:", len(df))
-
-# Define categorical columns to match the features
-cat_cols = [
-    "style",
-    "color",
-    "fabric_type",
-    "buyer",
-    "season",
-    "unit",
-    "articleNo",
-    "brand",
-    "productCategory",
-    "productSubCategory"
-]
-
 
 from sklearn.preprocessing import OrdinalEncoder
 encoder = OrdinalEncoder(handle_unknown="use_encoded_value", unknown_value=-1)

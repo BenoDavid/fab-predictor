@@ -85,49 +85,29 @@ def style_group(style: Optional[str]) -> Optional[str]:
         return None
     return style.strip().upper()[:5]
 
+
 def build_feature_row(req: dict, aggregates: dict) -> pd.DataFrame:
     row = {
-        # Categorical features
-        "style_group": style_group(req.get("style")) or "__MISSING__",
-        "fabric_type": req.get("fabric_type") or "__MISSING__",
-        "color_family": color_family(req.get("color")) or "__MISSING__",
-        "buyer": req.get("buyer") or "__MISSING__",
-        "supplier": req.get("supplier") or "__MISSING__",
-        "season": req.get("season") or "__MISSING__",
-        "wash_type": req.get("wash_type") or "__MISSING__",
-        "factory": req.get("factory") or "__MISSING__",
-
-        # Numeric features
-        "order_qty": req.get("qty"),
-        "gsm": req.get("gsm"),
-        "hist_median_per_piece": aggregates.get("hist_median_per_piece"),
-        "hist_count": aggregates.get("hist_count"),
-        "supplier_bias": aggregates.get("supplier_bias"),
+        "style": req.get("style"),
+        "qty": req.get("qty"),
     }
-
     df = pd.DataFrame([row])
-
     # Ensure all training features exist
     if MODEL.features:
         for col in MODEL.features:
             if col not in df.columns:
                 df[col] = np.nan
         df = df[MODEL.features]
-
     if MODEL.encoder:
         cat_cols = MODEL.encoder.get("categorical", [])
         enc = MODEL.encoder.get("encoder")
-
         if enc and cat_cols:
-            # 🔑 Force safe dtype for sklearn
             df[cat_cols] = (
                 df[cat_cols]
                 .astype(str)
                 .fillna("__MISSING__")
             )
-
             df[cat_cols] = enc.transform(df[cat_cols])
-
     return df
 
 

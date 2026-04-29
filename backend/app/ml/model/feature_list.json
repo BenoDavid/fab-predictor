@@ -1,15 +1,5 @@
 [
   "style",
-  "color",
-  "fabric_type",
-  "buyer",
-  "season",
-  "order_qty",
-  "unit",
-  "articleNo",
-  "brand",
-  "productCategory",
-  "productSubCategory",
-  "booking_cons",
-  "qty"
+  "qty",
+  "booking_cons"
 ]

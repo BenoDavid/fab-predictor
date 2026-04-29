@@ -2,25 +2,8 @@ from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, Dict, List
 
 class PredictionRequest(BaseModel):
-    # All optional except qty
-    style: Optional[str] = Field(default=None)
-    po: Optional[str] = Field(default=None)
-    color: Optional[str] = Field(default=None)
-    fabric_type: Optional[str] = Field(default=None)
+    style: str = Field(..., description="Style code")
     qty: int = Field(..., gt=0, description="Order quantity (units)")
-
-    buyer: Optional[str] = None
-    season: Optional[str] = None
-    supplier: Optional[str] = None
-    factory: Optional[str] = None
-
-    # Optional physical/process inputs if available
-    gsm: Optional[float] = None
-    width_mm: Optional[float] = None
-    shrinkage_warp_pct: Optional[float] = None
-    shrinkage_weft_pct: Optional[float] = None
-    marker_efficiency_pct: Optional[float] = None
-    wash_type: Optional[str] = None
 
     model_config = ConfigDict(extra="ignore")
 

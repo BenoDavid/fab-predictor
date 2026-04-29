@@ -1,4 +1,6 @@
 .env.test
+.env.development
+
 .env.production
 config.json
 node_modules
